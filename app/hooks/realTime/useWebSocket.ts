@@ -1,34 +1,36 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 export function useWebSocket(
   url: string,
-  onMessage: (data: any) => void
+  onMessage?: (data: any) => void
 ) {
   const wsRef = useRef<WebSocket | null>(null);
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    if (wsRef.current) return; // 🔥 กัน reconnect
+
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("✅ WebSocket connected");
-      setIsReady(true);
+      console.log("✅ WS connected");
     };
 
     ws.onmessage = (event) => {
-      onMessage(JSON.parse(event.data));
+      try {
+        onMessage?.(JSON.parse(event.data));
+      } catch {
+        onMessage?.(event.data);
+      }
     };
 
     ws.onerror = (err) => {
-      console.error("❌ WebSocket error", err);
+      console.error("❌ WS error", err);
     };
 
     ws.onclose = () => {
-      console.log("🔌 WebSocket disconnected");
-      setIsReady(false);
+      console.log("🔌 WS closed");
+      wsRef.current = null;
     };
 
     return () => {
@@ -36,15 +38,11 @@ export function useWebSocket(
     };
   }, [url, onMessage]);
 
-  const send = (data: any) => {
-    if (!wsRef.current) return;
-    if (wsRef.current.readyState !== WebSocket.OPEN) {
-      console.warn("⏳ WebSocket not ready, skip send");
-      return;
+  const send = useCallback((data: any) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(data));
     }
+  }, []);
 
-    wsRef.current.send(JSON.stringify(data));
-  };
-
-  return { send, isReady };
+  return { send };
 }
