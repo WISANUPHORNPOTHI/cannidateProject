@@ -165,17 +165,35 @@ export default function PatientPage() {
       <div className="lg:col-span-4">
         <FormInput
           label="Phone Number"
-          {...register("phone", { required: "กรุณากรอกหมายเลขโทรศัพท์" })}
+          inputMode="numeric"
+          {...register("phone", {
+            required: "กรุณากรอกหมายเลขโทรศัพท์",
+            pattern: {
+              value: /^[0-9]+$/,
+              message: "กรุณากรอกเฉพาะตัวเลข",
+            },
+            setValueAs: (v: string) => v.replace(/\D/g, ""),
+          })}
           error={errors.phone?.message}
         />
+
+
       </div>
 
       <div className="lg:col-span-6">
         <FormInput
           label="Email"
-          {...register("email", { required: "กรุณากรอก Email" })}
+          type="email"
+          {...register("email", {
+            required: "กรุณากรอก Email",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "รูปแบบ Email ไม่ถูกต้อง",
+            },
+          })}
           error={errors.email?.message}
         />
+
       </div>
 
       <div className="lg:col-span-12">
@@ -207,11 +225,18 @@ export default function PatientPage() {
       <div className="lg:col-span-4">
         <FormInput
           label="Emergency Contact"
+          inputMode="numeric"
           {...register("emergencyContact", {
             required: "กรุณากรอกเบอร์โทรศัพท์ฉุกเฉิน",
+            pattern: {
+              value: /^[0-9]+$/,
+              message: "กรุณากรอกเฉพาะตัวเลข",
+            },
+            setValueAs: (v: string) => v.replace(/\D/g, ""),
           })}
           error={errors.emergencyContact?.message}
         />
+
       </div>
 
       <div className="lg:col-span-4">
