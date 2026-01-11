@@ -24,7 +24,7 @@ type FormValues = {
   religion: string;
 };
 
-export default function page() {
+export default function PatientPage() {
   const {
     register,
     watch,
