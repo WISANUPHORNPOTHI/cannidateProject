@@ -1,26 +1,29 @@
-import { useEffect, useRef, useCallback } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 
 export function useWebSocket(
   url: string,
   onMessage?: (data: any) => void
 ) {
   const wsRef = useRef<WebSocket | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (wsRef.current) return; // 🔥 กัน reconnect
-
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
     ws.onopen = () => {
       console.log("✅ WS connected");
+      setIsReady(true);
     };
 
     ws.onmessage = (event) => {
       try {
-        onMessage?.(JSON.parse(event.data));
-      } catch {
-        onMessage?.(event.data);
+        const data = JSON.parse(event.data);
+        onMessage?.(data);
+      } catch (e) {
+        console.error("WS parse error:", e);
       }
     };
 
@@ -30,7 +33,7 @@ export function useWebSocket(
 
     ws.onclose = () => {
       console.log("🔌 WS closed");
-      wsRef.current = null;
+      setIsReady(false);
     };
 
     return () => {
@@ -38,11 +41,14 @@ export function useWebSocket(
     };
   }, [url, onMessage]);
 
-  const send = useCallback((data: any) => {
+  const send = (data: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(data));
     }
-  }, []);
+  };
 
-  return { send };
+  return {
+    send,
+    isReady, 
+  };
 }
