@@ -35,10 +35,12 @@ export default function Page() {
     },
   });
 
-  const { send } = useWebSocket(
+  const { send, isReady } = useWebSocket(
     "ws://localhost:3001",
-    () => {}
+    (data) => {
+    }
   );
+
 
   const watchedValues = watch();
 
@@ -47,15 +49,15 @@ export default function Page() {
   };
 
   useEffect(() => {
+    if (!isReady) return;
     if (!watchedValues) return;
 
     const hasAnyValue = Object.values(watchedValues).some(
       (v) => v !== "" && v !== undefined
     );
-
     if (!hasAnyValue) return;
 
-    const timeout = setTimeout(() => {
+    const t = setTimeout(() => {
       send({
         type: "FORM_STAGE_UPDATE",
         stage: "PERSONAL_DETAIL",
@@ -63,8 +65,8 @@ export default function Page() {
       });
     }, 300);
 
-    return () => clearTimeout(timeout);
-  }, [watchedValues, send]);
+    return () => clearTimeout(t);
+  }, [watchedValues, send, isReady]);
 
   return (
     <form
