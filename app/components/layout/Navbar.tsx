@@ -43,7 +43,7 @@ export function Navbar({
                 </motion.button>
 
                 <span className="font-semibold tracking-wide">
-                    Dashboard
+                    Home
                 </span>
             </div>
 

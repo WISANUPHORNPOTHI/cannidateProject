@@ -1,10 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧩 Real-time Collaboration System
+Next.js (Vercel) + WebSocket Service (Render)
 
-## Getting Started
+This is a Next.js project bootstrapped with create-next-app.
+The application is designed as a real-time collaborative system where the frontend and the WebSocket backend are deployed as separate services for scalability and production readiness.
 
-First, run the development server:
+---
 
-```bash
+## 🏗 System Architecture Overview
+
+This project separates responsibilities into two services:
+
+- Frontend: Next.js (deployed on Vercel)
+- Realtime Backend: WebSocket Service (deployed on Render)
+
+Architecture flow:
+
+Browser (Patient / Staff)
+  |
+  | WebSocket (wss)
+  v
+WebSocket Service (Render)
+  |
+  | Real-time events
+  v
+Next.js Frontend (Vercel)
+
+Why this architecture:
+- Vercel is optimized for serverless frontend rendering
+- Long-lived WebSocket connections are not suitable for serverless environments
+- Render provides a persistent runtime for WebSocket connections
+- This pattern is commonly used in production real-time systems
+
+---
+
+## 🚀 Getting Started (Frontend)
+
+Install dependencies and start the development server:
+
 npm run dev
 # or
 yarn dev
@@ -12,26 +44,162 @@ yarn dev
 pnpm dev
 # or
 bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open your browser at:
+http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can start editing the application by modifying:
+app/page.tsx
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The page will auto-update as you edit the file.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🔌 Real-time WebSocket Service (Render)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The WebSocket server is deployed as a separate service and acts as a realtime backend.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Responsibilities:
+- Live form synchronization
+- Typing indicators
+- Multi-user collaboration (Patient / Staff)
+- Preventing echo loops using clientId
+- Role-based message broadcasting
 
-## Deploy on Vercel
+Example structure:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+ws-server/
+  server.ts
+  package.json
+  tsconfig.json
+  Dockerfile
+  dist/
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
->>>>>>> 64f5ac4 (Initial commit from Create Next App)
+---
+
+## 🐳 Dockerfile for WebSocket Service (Render)
+
+FROM node:18
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN node node_modules/typescript/lib/tsc.js
+
+CMD ["node", "dist/server.js"]
+
+---
+
+## 🚀 Deploy WebSocket Service on Render
+
+1. Go to https://render.com
+2. Create a new Web Service
+3. Connect the repository containing the ws-server
+4. Select Docker as the runtime
+5. Deploy the service
+
+After deployment, Render will provide a URL similar to:
+
+wss://your-websocket-service.onrender.com
+
+This URL will be used by the Next.js frontend.
+
+---
+
+## 🌐 Deploy Next.js Frontend on Vercel
+
+The Next.js frontend is deployed on Vercel.
+
+### Environment Variable Configuration
+
+In Vercel Dashboard:
+Project Settings → Environment Variables
+
+Add:
+
+NEXT_PUBLIC_WS_URL=wss://your-websocket-service.onrender.com
+
+The NEXT_PUBLIC_ prefix is required so the variable is accessible on the client side.
+
+---
+
+## 🔁 WebSocket Integration in Next.js
+
+The frontend connects to the WebSocket service using a custom hook:
+
+useWebSocket(process.env.NEXT_PUBLIC_WS_URL!)
+
+This enables:
+- Live form updates
+- Typing indicators
+- Real-time collaboration
+- Smooth input experience without cursor flickering
+
+---
+
+## 🧠 Real-time Design Principles
+
+- WebSocket server is stateless
+- Each client has a unique clientId
+- Messages are not echoed back to the sender
+- Updates are broadcast only to the opposite role (Patient ↔ Staff)
+- Frontend avoids unnecessary setValue calls to prevent flickering
+
+This ensures a smooth and predictable user experience similar to real-time collaborative editors.
+
+---
+
+## ⚠️ Production Notes
+
+- Render Free Tier may sleep when idle
+  → the first WebSocket connection may take a few seconds
+- Enable Always On for production usage
+- Always use secure WebSocket (wss://) in production
+- Consider extending the system with:
+  - Room or session separation
+  - Field-level locking
+  - Audit logs
+
+---
+
+## 📦 Tech Stack
+
+Frontend:
+- Next.js (App Router)
+- React
+- React Hook Form
+- Tailwind CSS
+
+Realtime Backend:
+- WebSocket (ws)
+- Node.js
+- TypeScript
+
+Deployment:
+- Frontend: Vercel
+- WebSocket Service: Render
+
+---
+
+## 📚 Learn More
+
+Next.js Documentation:
+https://nextjs.org/docs
+
+Learn Next.js:
+https://nextjs.org/learn
+
+Next.js GitHub Repository:
+https://github.com/vercel/next.js
+
+---
+
+## ✅ Summary
+
+- Next.js frontend is deployed on Vercel
+- WebSocket backend is deployed separately on Render
+- Services communicate via NEXT_PUBLIC_WS_URL
+- Architecture is scalable and production-ready
+- Designed for real-time collaboration use cases
