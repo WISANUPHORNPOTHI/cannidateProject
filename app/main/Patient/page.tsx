@@ -25,45 +25,62 @@ type FormValues = {
 };
 
 export default function PatientPage() {
-  const { register, watch, setValue, formState: { errors }, handleSubmit,
+  const {
+    register,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { errors, isDirty },
   } = useForm<FormValues>({
     defaultValues: {
       gender: "",
     },
   });
 
+  const clientIdRef = useRef<string>(
+    typeof crypto !== "undefined" ? crypto.randomUUID() : Math.random().toString()
+  );
+
+  const isRemoteUpdateRef = useRef(false);
+
   const watchedValues = watch();
-  const isRemoteRef = useRef(false);
 
   const { send, isReady } = useWebSocket(
     process.env.NEXT_PUBLIC_WS_URL!,
     (data) => {
       if (
-        data.type === "FORM_STAGE_UPDATE" &&
-        data.stage === "PERSONAL_DETAIL" &&
-        data.source === "STAFF"
+        data?.type !== "FORM_STAGE_UPDATE" ||
+        data?.stage !== "PERSONAL_DETAIL" ||
+        data?.source !== "STAFF" ||
+        data?.clientId === clientIdRef.current
       ) {
-        isRemoteRef.current = true;
-
-        Object.entries(data.payload).forEach(([key, value]) => {
-          if (typeof value === "string") {
-            setValue(key as keyof FormValues, value, {
-              shouldDirty: false,
-              shouldTouch: false,
-            });
-          }
-        });
+        return;
       }
+
+      isRemoteUpdateRef.current = true;
+
+      Object.entries(data.payload ?? {}).forEach(([key, value]) => {
+        const currentValue = watch(key as keyof FormValues);
+
+        if (currentValue !== value && typeof value === "string") {
+          setValue(key as keyof FormValues, value, {
+            shouldDirty: false,
+            shouldTouch: false,
+            shouldValidate: false,
+          });
+        }
+      });
+
+      queueMicrotask(() => {
+        isRemoteUpdateRef.current = false;
+      });
     }
   );
 
   useEffect(() => {
     if (!isReady) return;
-
-    if (isRemoteRef.current) {
-      isRemoteRef.current = false;
-      return;
-    }
+    if (!isDirty) return;
+    if (isRemoteUpdateRef.current) return;
 
     const hasAnyValue = Object.values(watchedValues).some(
       (v) => v !== "" && v !== undefined
@@ -75,17 +92,19 @@ export default function PatientPage() {
         type: "FORM_STAGE_UPDATE",
         stage: "PERSONAL_DETAIL",
         source: "PATIENT",
+        clientId: clientIdRef.current,
         payload: watchedValues,
       });
 
       send({
         type: "PATIENT_TYPING",
         stage: "PERSONAL_DETAIL",
+        clientId: clientIdRef.current,
       });
     }, 300);
 
     return () => clearTimeout(t);
-  }, [watchedValues, isReady, send]);
+  }, [watchedValues, isReady, isDirty, send]);
 
   return (
     <form
@@ -93,11 +112,11 @@ export default function PatientPage() {
         console.log("SUBMIT DATA:", data);
       })}
       className="
-    m-5 grid gap-4
-    grid-cols-1
-    md:grid-cols-2
-    lg:grid-cols-12
-  "
+        m-5 grid gap-4
+        grid-cols-1
+        md:grid-cols-2
+        lg:grid-cols-12
+      "
     >
       <div className="lg:col-span-12 text-lg text-gray-500 uppercase">
         Patient – Personal Detail
@@ -106,37 +125,28 @@ export default function PatientPage() {
       <div className="lg:col-span-4">
         <FormInput
           label="First Name"
-          {...register("firstName", {
-            required: "กรุณากรอกชื่อ",
-          })}
+          {...register("firstName", { required: "กรุณากรอกชื่อ" })}
           error={errors.firstName?.message}
         />
       </div>
 
       <div className="lg:col-span-4">
-        <FormInput
-          label="Middle Name (optional)"
-          {...register("middleName")}
-        />
+        <FormInput label="Middle Name (optional)" {...register("middleName")} />
       </div>
 
       <div className="lg:col-span-4">
         <FormInput
           label="Last Name"
-          {...register("lastName", {
-            required: "กรุณากรอกนามสกุล",
-          })}
-          error={errors?.lastName?.message}
+          {...register("lastName", { required: "กรุณากรอกนามสกุล" })}
+          error={errors.lastName?.message}
         />
       </div>
 
       <div className="lg:col-span-4">
         <FormDateTime
-          label="DateOfBirth"
-          {...register("dateOfBirth", {
-            required: "กรุณากรอกวันเกิด",
-          })}
-          error={errors?.dateOfBirth?.message}
+          label="Date Of Birth"
+          {...register("dateOfBirth", { required: "กรุณากรอกวันเกิด" })}
+          error={errors.dateOfBirth?.message}
         />
       </div>
 
@@ -147,45 +157,33 @@ export default function PatientPage() {
             { label: "Male", value: "male" },
             { label: "Female", value: "female" },
           ]}
-          {...register("gender", {
-            required: "กรุณาเลือกเพศ",
-          })}
+          {...register("gender", { required: "กรุณาเลือกเพศ" })}
           error={errors.gender?.message}
         />
-
       </div>
 
       <div className="lg:col-span-4">
         <FormInput
           label="Phone Number"
-          {...register("phone", {
-            required: "กรุณากรอกหมายเลขโทรศัพท์",
-          })}
+          {...register("phone", { required: "กรุณากรอกหมายเลขโทรศัพท์" })}
           error={errors.phone?.message}
         />
-
       </div>
 
       <div className="lg:col-span-6">
         <FormInput
           label="Email"
-          {...register("email", {
-            required: "กรุณากรอก Email",
-          })}
+          {...register("email", { required: "กรุณากรอก Email" })}
           error={errors.email?.message}
         />
-
       </div>
 
       <div className="lg:col-span-12">
         <FormInput
           label="Address"
-          {...register("address", {
-            required: "กรุณากรอกที่อยู่",
-          })}
+          {...register("address", { required: "กรุณากรอกที่อยู่" })}
           error={errors.address?.message}
         />
-
       </div>
 
       <div className="lg:col-span-4">
@@ -196,18 +194,14 @@ export default function PatientPage() {
           })}
           error={errors.preferredLanguage?.message}
         />
-
       </div>
 
       <div className="lg:col-span-4">
         <FormInput
           label="Nationality"
-          {...register("nationality", {
-            required: "กรุณากรอกสัญชาติ",
-          })}
+          {...register("nationality", { required: "กรุณากรอกสัญชาติ" })}
           error={errors.nationality?.message}
         />
-
       </div>
 
       <div className="lg:col-span-4">
@@ -218,7 +212,6 @@ export default function PatientPage() {
           })}
           error={errors.emergencyContact?.message}
         />
-
       </div>
 
       <div className="lg:col-span-4">
@@ -229,20 +222,13 @@ export default function PatientPage() {
         <button
           type="submit"
           className="
-        rounded-lg
-        bg-blue-500
-        px-6 py-2
-        text-sm font-medium
-        text-white
-        hover:bg-blue-600
-        active:scale-95
-        transition
-      "
+            rounded-lg bg-blue-500 px-6 py-2 text-sm font-medium
+            text-white hover:bg-blue-600 active:scale-95 transition
+          "
         >
           Submit
         </button>
       </div>
     </form>
-
   );
 }
