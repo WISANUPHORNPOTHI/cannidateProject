@@ -24,7 +24,7 @@ type FormValues = {
   religion: string;
 };
 
-export default function PatientPage() {
+export default function page() {
   const {
     register,
     watch,
@@ -82,6 +82,25 @@ export default function PatientPage() {
     }
   );
 
+  const focusField = (field: keyof FormValues) => {
+    activeFieldRef.current = field;
+    send({
+      type: "FIELD_FOCUS",
+      stage: "PERSONAL_DETAIL",
+      clientId: clientIdRef.current,
+      field,
+    });
+  };
+
+  const blurField = () => {
+    activeFieldRef.current = null;
+    send({
+      type: "FIELD_BLUR",
+      stage: "PERSONAL_DETAIL",
+      clientId: clientIdRef.current,
+    });
+  };
+
   useEffect(() => {
     if (!isReady) return;
     if (!isDirty) return;
@@ -106,10 +125,6 @@ export default function PatientPage() {
     return () => clearTimeout(t);
   }, [watchedValues, isReady, isDirty, send]);
 
-  const focus =
-    (field: keyof FormValues) => () => (activeFieldRef.current = field);
-  const blur = () => (activeFieldRef.current = null);
-
   return (
     <form
       onSubmit={handleSubmit((data) => {
@@ -130,8 +145,8 @@ export default function PatientPage() {
         <FormInput
           label="First Name"
           {...register("firstName", { required: "กรุณากรอกชื่อ" })}
-          onFocus={focus("firstName")}
-          onBlur={blur}
+          onFocus={() => focusField("firstName")}
+          onBlur={blurField}
           error={errors.firstName?.message}
         />
       </div>
@@ -140,8 +155,8 @@ export default function PatientPage() {
         <FormInput
           label="Middle Name (optional)"
           {...register("middleName")}
-          onFocus={focus("middleName")}
-          onBlur={blur}
+          onFocus={() => focusField("middleName")}
+          onBlur={blurField}
         />
       </div>
 
@@ -149,8 +164,8 @@ export default function PatientPage() {
         <FormInput
           label="Last Name"
           {...register("lastName", { required: "กรุณากรอกนามสกุล" })}
-          onFocus={focus("lastName")}
-          onBlur={blur}
+          onFocus={() => focusField("lastName")}
+          onBlur={blurField}
           error={errors.lastName?.message}
         />
       </div>
@@ -187,8 +202,8 @@ export default function PatientPage() {
             },
             setValueAs: (v: string) => v.replace(/\D/g, ""),
           })}
-          onFocus={focus("phone")}
-          onBlur={blur}
+          onFocus={() => focusField("phone")}
+          onBlur={blurField}
           error={errors.phone?.message}
         />
       </div>
@@ -204,8 +219,8 @@ export default function PatientPage() {
               message: "รูปแบบ Email ไม่ถูกต้อง",
             },
           })}
-          onFocus={focus("email")}
-          onBlur={blur}
+          onFocus={() => focusField("email")}
+          onBlur={blurField}
           error={errors.email?.message}
         />
       </div>
@@ -214,8 +229,8 @@ export default function PatientPage() {
         <FormInput
           label="Address"
           {...register("address", { required: "กรุณากรอกที่อยู่" })}
-          onFocus={focus("address")}
-          onBlur={blur}
+          onFocus={() => focusField("address")}
+          onBlur={blurField}
           error={errors.address?.message}
         />
       </div>
@@ -226,8 +241,8 @@ export default function PatientPage() {
           {...register("preferredLanguage", {
             required: "กรุณากรอก Preferred Language",
           })}
-          onFocus={focus("preferredLanguage")}
-          onBlur={blur}
+          onFocus={() => focusField("preferredLanguage")}
+          onBlur={blurField}
           error={errors.preferredLanguage?.message}
         />
       </div>
@@ -236,8 +251,8 @@ export default function PatientPage() {
         <FormInput
           label="Nationality"
           {...register("nationality", { required: "กรุณากรอกสัญชาติ" })}
-          onFocus={focus("nationality")}
-          onBlur={blur}
+          onFocus={() => focusField("nationality")}
+          onBlur={blurField}
           error={errors.nationality?.message}
         />
       </div>
@@ -254,8 +269,8 @@ export default function PatientPage() {
             },
             setValueAs: (v: string) => v.replace(/\D/g, ""),
           })}
-          onFocus={focus("emergencyContact")}
-          onBlur={blur}
+          onFocus={() => focusField("emergencyContact")}
+          onBlur={blurField}
           error={errors.emergencyContact?.message}
         />
       </div>
@@ -264,8 +279,8 @@ export default function PatientPage() {
         <FormInput
           label="Religion (optional)"
           {...register("religion")}
-          onFocus={focus("religion")}
-          onBlur={blur}
+          onFocus={() => focusField("religion")}
+          onBlur={blurField}
         />
       </div>
 
