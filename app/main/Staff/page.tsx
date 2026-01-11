@@ -119,8 +119,9 @@ export default function Page() {
 
   const highlight = (field: keyof FormValues) =>
     remoteFocusedField === field
-      ? "ring-2 ring-blue-400 animate-pulse"
+      ? "ring-2 ring-amber-400 shadow-lg shadow-amber-200 animate-pulse"
       : "";
+
 
   return (
     <div className="m-5 grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-12">
