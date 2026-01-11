@@ -15,58 +15,53 @@ const MENU = [
   { label: "Staff", href: "/main/Staff", icon: "👨‍💼" },
 ];
 
-export function Sidebar({
-  open,
-  setIsSidebarOpen,
-}: SidebarProps) {
+export function Sidebar({ open, setIsSidebarOpen }: SidebarProps) {
   const pathname = usePathname();
 
   return (
     <aside
-      className={`
+      className="
         m-2
-        rounded-xl bg-gray-900 text-white
-        transition-[width] duration-300
-        ease-[cubic-bezier(0.4,0,0.2,1)]
-        ${open ? "w-64" : "w-16"}
-      `}
+        w-16
+        md:w-auto
+        md:transition-[width] md:duration-300
+        md:ease-[cubic-bezier(0.4,0,0.2,1)]
+        md:[&]:w-64
+        md:[&]:w-16
+        rounded-xl
+        bg-gray-900
+        text-white
+      "
+      style={{
+        width: typeof window !== "undefined" && window.innerWidth >= 768
+          ? open ? 256 : 64
+          : 64,
+      }}
     >
+      {/* Header */}
       <div
-        className={`
-          h-14 flex items-center
-          ${open ? "justify-between px-4" : "justify-center"}
-          transition-all duration-300
+        className="
+          h-14
+          flex items-center justify-center
           border-b border-gray-700
-        `}
+        "
       >
-        {open && (
-          <span className="font-bold tracking-wide">
-          </span>
-        )}
-
+        {/* Toggle: desktop only */}
         <motion.button
           onClick={() => setIsSidebarOpen(!open)}
-          animate={{
-            rotate: open ? 180 : 0,
-            x: open ? 0 : 6,
-            scale: open ? 1 : 1.1,
-          }}
-          whileHover={{ scale: 1.15 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{
-            type: "spring",
-            stiffness: 180,
-            damping: 18,
-            mass: 0.8,
-          }}
-          className="text-sm opacity-80 hover:opacity-100"
+          className="
+            hidden md:block
+            text-sm opacity-80 hover:opacity-100
+          "
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ type: "spring", stiffness: 180, damping: 18 }}
         >
           ▶
         </motion.button>
-
       </div>
 
-      <nav className="mt-2 space-y-1">
+      {/* Menu */}
+      <nav className="mt-2 space-y-2">
         {MENU.map((item) => {
           const isActive = pathname.startsWith(item.href);
 
@@ -75,39 +70,26 @@ export function Sidebar({
               key={item.href}
               href={item.href}
               className={`
-                mx-2 flex items-center rounded-lg
-                transition-all duration-300
-                ${open
-                  ? "gap-3 px-3 py-2"
-                  : "justify-center py-3"
-                }
-                ${isActive
-                  ? "bg-gray-700"
-                  : "hover:bg-gray-800"
-                }
+                mx-2
+                flex items-center justify-center
+                rounded-xl
+                py-3
+                transition-colors
+                ${isActive ? "bg-gray-700" : "hover:bg-gray-800"}
               `}
             >
-              <span
-                className={`
-                  text-lg
-                  transition-all duration-300
-                  ${open
-                    ? "translate-x-0 scale-100"
-                    : "translate-x-1 scale-125"
-                  }
-                `}
-              >
+              {/* Icon */}
+              <span className="text-2xl">
                 {item.icon}
               </span>
 
+              {/* Label: desktop only */}
               <span
                 className={`
-                  whitespace-nowrap
+                  hidden md:inline-block
+                  ml-3 whitespace-nowrap
                   transition-all duration-300
-                  ${open
-                    ? "opacity-100 translate-x-0"
-                    : "opacity-0 -translate-x-2 w-0 overflow-hidden"
-                  }
+                  ${open ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}
                 `}
               >
                 {item.label}
