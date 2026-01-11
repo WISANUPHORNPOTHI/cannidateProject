@@ -15,33 +15,37 @@ const MENU = [
   { label: "Staff", href: "/main/Staff", icon: "👨‍💼" },
 ];
 
-export function Sidebar({ open, setIsSidebarOpen }: SidebarProps) {
+export function Sidebar({
+  open,
+  setIsSidebarOpen,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
     <aside
       className={`
-        m-2 rounded-xl bg-gray-900 text-white
+        m-2
+        rounded-xl bg-gray-900 text-white
         transition-[width] duration-300
         ease-[cubic-bezier(0.4,0,0.2,1)]
-
-        w-16 md:${open ? "w-64" : "w-16"}
+        ${open ? "w-64" : "w-16"}
       `}
     >
-      {/* Header */}
       <div
         className={`
-          h-14 flex items-center border-b border-gray-700
-          justify-center md:${open ? "justify-between px-4" : "justify-center"}
+          h-14 flex items-center
+          ${open ? "justify-between px-4" : "justify-center"}
+          transition-all duration-300
+          border-b border-gray-700
         `}
       >
-        {/* Toggle button: desktop only */}
+        {open && (
+          <span className="font-bold tracking-wide">
+          </span>
+        )}
+
         <motion.button
           onClick={() => setIsSidebarOpen(!open)}
-          className="
-            hidden md:block
-            text-sm opacity-80 hover:opacity-100
-          "
           animate={{
             rotate: open ? 180 : 0,
             x: open ? 0 : 6,
@@ -55,13 +59,14 @@ export function Sidebar({ open, setIsSidebarOpen }: SidebarProps) {
             damping: 18,
             mass: 0.8,
           }}
+          className="text-sm opacity-80 hover:opacity-100"
         >
           ▶
         </motion.button>
+
       </div>
 
-      {/* Menu */}
-      <nav className="mt-2 space-y-2">
+      <nav className="mt-2 space-y-1">
         {MENU.map((item) => {
           const isActive = pathname.startsWith(item.href);
 
@@ -70,33 +75,39 @@ export function Sidebar({ open, setIsSidebarOpen }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={`
-                mx-2 flex items-center rounded-xl
+                mx-2 flex items-center rounded-lg
                 transition-all duration-300
-
-                justify-center md:${open ? "gap-3 px-3 py-2" : "justify-center py-3"}
-
-                ${isActive ? "bg-gray-700" : "hover:bg-gray-800"}
+                ${open
+                  ? "gap-3 px-3 py-2"
+                  : "justify-center py-3"
+                }
+                ${isActive
+                  ? "bg-gray-700"
+                  : "hover:bg-gray-800"
+                }
               `}
             >
-              {/* Icon */}
               <span
                 className={`
+                  text-lg
                   transition-all duration-300
-
-                  text-2xl md:text-lg
-                  ${open ? "md:scale-100" : "md:scale-125"}
+                  ${open
+                    ? "translate-x-0 scale-100"
+                    : "translate-x-1 scale-125"
+                  }
                 `}
               >
                 {item.icon}
               </span>
 
-              {/* Label (desktop only when open) */}
               <span
                 className={`
-                  hidden md:block
                   whitespace-nowrap
                   transition-all duration-300
-                  ${open ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 w-0 overflow-hidden"}
+                  ${open
+                    ? "opacity-100 translate-x-0"
+                    : "opacity-0 -translate-x-2 w-0 overflow-hidden"
+                  }
                 `}
               >
                 {item.label}
