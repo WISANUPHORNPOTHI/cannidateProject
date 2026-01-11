@@ -58,19 +58,6 @@ export function Navbar({
                 >
                     Hello
                 </motion.span>
-
-                <button
-                    className="
-            rounded-lg
-            bg-red-500/90
-            px-3 py-1 text-sm
-            text-white
-            hover:bg-red-500
-            transition
-          "
-                >
-                    Logout
-                </button>
             </div>
         </motion.header>
     );
