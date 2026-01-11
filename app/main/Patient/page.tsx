@@ -1,12 +1,12 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useWebSocket } from "@/app/hooks/realTime/useWebSocket";
 
 import { FormInput } from "@/app/components/form/formInput";
 import { FormDateTime } from "@/app/components/form/formDateTime";
 import { FormDropdown } from "@/app/components/form/formDropdown";
-import { useWebSocket } from "@/app/hooks/realTime/useWebSocket";
 
 type FormValues = {
   firstName: string;
@@ -16,6 +16,7 @@ type FormValues = {
   gender: string;
   phone: string;
   email: string;
+  dateOfBirth: Date;
   address: string;
   preferredLanguage: string;
   nationality: string;
@@ -23,33 +24,46 @@ type FormValues = {
   religion: string;
 };
 
-export default function Page() {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
+export default function PatientPage() {
+  const { register, watch, setValue, formState: { errors }, handleSubmit,
   } = useForm<FormValues>({
     defaultValues: {
       gender: "",
     },
   });
 
+  const watchedValues = watch();
+  const isRemoteRef = useRef(false);
+
   const { send, isReady } = useWebSocket(
     "ws://localhost:3001",
     (data) => {
+      if (
+        data.type === "FORM_STAGE_UPDATE" &&
+        data.stage === "PERSONAL_DETAIL" &&
+        data.source === "STAFF"
+      ) {
+        isRemoteRef.current = true;
+
+        Object.entries(data.payload).forEach(([key, value]) => {
+          if (typeof value === "string") {
+            setValue(key as keyof FormValues, value, {
+              shouldDirty: false,
+              shouldTouch: false,
+            });
+          }
+        });
+      }
     }
   );
 
-
-  const watchedValues = watch();
-  const onSubmit = (data: FormValues) => {
-    console.log("FORM DATA:", data);
-  };
-
   useEffect(() => {
     if (!isReady) return;
-    if (!watchedValues) return;
+
+    if (isRemoteRef.current) {
+      isRemoteRef.current = false;
+      return;
+    }
 
     const hasAnyValue = Object.values(watchedValues).some(
       (v) => v !== "" && v !== undefined
@@ -60,25 +74,33 @@ export default function Page() {
       send({
         type: "FORM_STAGE_UPDATE",
         stage: "PERSONAL_DETAIL",
+        source: "PATIENT",
         payload: watchedValues,
+      });
+
+      send({
+        type: "PATIENT_TYPING",
+        stage: "PERSONAL_DETAIL",
       });
     }, 300);
 
     return () => clearTimeout(t);
-  }, [watchedValues, send, isReady]);
+  }, [watchedValues, isReady, send]);
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit((data) => {
+        console.log("SUBMIT DATA:", data);
+      })}
       className="
-        m-5 grid gap-4
-        grid-cols-1
-        md:grid-cols-2
-        lg:grid-cols-12
-      "
+    m-5 grid gap-4
+    grid-cols-1
+    md:grid-cols-2
+    lg:grid-cols-12
+  "
     >
       <div className="lg:col-span-12 text-lg text-gray-500 uppercase">
-        Personal detail
+        Patient – Personal Detail
       </div>
 
       <div className="lg:col-span-4">
@@ -104,14 +126,17 @@ export default function Page() {
           {...register("lastName", {
             required: "กรุณากรอกนามสกุล",
           })}
-          error={errors.lastName?.message}
+          error={errors?.lastName?.message}
         />
       </div>
 
       <div className="lg:col-span-4">
         <FormDateTime
-          label="Appointment Date"
-          {...register("appointmentDate")}
+          label="DateOfBirth"
+          {...register("dateOfBirth", {
+            required: "กรุณากรอกวันเกิด",
+          })}
+          error={errors?.dateOfBirth?.message}
         />
       </div>
 
@@ -122,75 +147,102 @@ export default function Page() {
             { label: "Male", value: "male" },
             { label: "Female", value: "female" },
           ]}
-          {...register("gender")}
+          {...register("gender", {
+            required: "กรุณาเลือกเพศ",
+          })}
+          error={errors.gender?.message}
         />
+
       </div>
 
       <div className="lg:col-span-4">
         <FormInput
           label="Phone Number"
-          {...register("phone")}
+          {...register("phone", {
+            required: "กรุณากรอกหมายเลขโทรศัพท์",
+          })}
+          error={errors.phone?.message}
         />
+
       </div>
 
       <div className="lg:col-span-6">
         <FormInput
           label="Email"
-          {...register("email")}
+          {...register("email", {
+            required: "กรุณากรอก Email",
+          })}
+          error={errors.email?.message}
         />
+
       </div>
 
       <div className="lg:col-span-12">
         <FormInput
           label="Address"
-          {...register("address")}
+          {...register("address", {
+            required: "กรุณากรอกที่อยู่",
+          })}
+          error={errors.address?.message}
         />
+
       </div>
 
       <div className="lg:col-span-4">
         <FormInput
           label="Preferred Language"
-          {...register("preferredLanguage")}
+          {...register("preferredLanguage", {
+            required: "กรุณากรอก Preferred Language",
+          })}
+          error={errors.preferredLanguage?.message}
         />
+
       </div>
 
       <div className="lg:col-span-4">
         <FormInput
           label="Nationality"
-          {...register("nationality")}
+          {...register("nationality", {
+            required: "กรุณากรอกสัญชาติ",
+          })}
+          error={errors.nationality?.message}
         />
+
       </div>
 
       <div className="lg:col-span-4">
         <FormInput
           label="Emergency Contact"
-          {...register("emergencyContact")}
+          {...register("emergencyContact", {
+            required: "กรุณากรอกเบอร์โทรศัพท์ฉุกเฉิน",
+          })}
+          error={errors.emergencyContact?.message}
         />
+
       </div>
 
       <div className="lg:col-span-4">
-        <FormInput
-          label="Religion (optional)"
-          {...register("religion")}
-        />
+        <FormInput label="Religion (optional)" {...register("religion")} />
       </div>
 
-      <div className="lg:col-span-12 flex justify-end">
+      <div className="lg:col-span-12 flex justify-end mt-4">
         <button
           type="submit"
           className="
-            rounded-lg
-            bg-blue-500
-            px-4 py-2
-            text-sm
-            text-white
-            hover:bg-blue-600
-            transition
-          "
+        rounded-lg
+        bg-blue-500
+        px-6 py-2
+        text-sm font-medium
+        text-white
+        hover:bg-blue-600
+        active:scale-95
+        transition
+      "
         >
           Submit
         </button>
       </div>
     </form>
+
   );
 }

@@ -23,7 +23,7 @@ type FormValues = {
     religion: string;
 };
 
-export default function StaffPage() {
+export default function page() {
     const {
         register,
         watch,

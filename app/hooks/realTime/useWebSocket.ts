@@ -7,7 +7,13 @@ export function useWebSocket(
   onMessage?: (data: any) => void
 ) {
   const wsRef = useRef<WebSocket | null>(null);
+  const onMessageRef = useRef<((data: any) => void) | null>(null);
   const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    onMessageRef.current = onMessage ?? null;
+  }, [onMessage]);
+
 
   useEffect(() => {
     const ws = new WebSocket(url);
@@ -21,14 +27,10 @@ export function useWebSocket(
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        onMessage?.(data);
-      } catch (e) {
-        console.error("WS parse error:", e);
+        onMessageRef.current?.(data);
+      } catch {
+        // ignore
       }
-    };
-
-    ws.onerror = (err) => {
-      console.error("❌ WS error", err);
     };
 
     ws.onclose = () => {
@@ -36,10 +38,8 @@ export function useWebSocket(
       setIsReady(false);
     };
 
-    return () => {
-      ws.close();
-    };
-  }, [url, onMessage]);
+    return () => ws.close();
+  }, [url]);
 
   const send = (data: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -47,8 +47,5 @@ export function useWebSocket(
     }
   };
 
-  return {
-    send,
-    isReady, 
-  };
+  return { send, isReady };
 }
