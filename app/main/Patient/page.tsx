@@ -1,9 +1,12 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+
 import { FormInput } from "@/app/components/form/formInput";
 import { FormDateTime } from "@/app/components/form/formDateTime";
 import { FormDropdown } from "@/app/components/form/formDropdown";
+import { useWebSocket } from "@/app/hooks/realTime/useWebSocket";
 
 type FormValues = {
   firstName: string;
@@ -24,6 +27,7 @@ export default function Page() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -31,9 +35,36 @@ export default function Page() {
     },
   });
 
+  const { send } = useWebSocket(
+    "ws://localhost:3001",
+    () => {}
+  );
+
+  const watchedValues = watch();
+
   const onSubmit = (data: FormValues) => {
     console.log("FORM DATA:", data);
   };
+
+  useEffect(() => {
+    if (!watchedValues) return;
+
+    const hasAnyValue = Object.values(watchedValues).some(
+      (v) => v !== "" && v !== undefined
+    );
+
+    if (!hasAnyValue) return;
+
+    const timeout = setTimeout(() => {
+      send({
+        type: "FORM_STAGE_UPDATE",
+        stage: "PERSONAL_DETAIL",
+        payload: watchedValues,
+      });
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [watchedValues, send]);
 
   return (
     <form
@@ -52,8 +83,10 @@ export default function Page() {
       <div className="lg:col-span-4">
         <FormInput
           label="First Name"
-          {...register("firstName", { required: "กรุณากรอกชื่อ" })}
-           error={errors.firstName?.message}
+          {...register("firstName", {
+            required: "กรุณากรอกชื่อ",
+          })}
+          error={errors.firstName?.message}
         />
       </div>
 
@@ -67,7 +100,9 @@ export default function Page() {
       <div className="lg:col-span-4">
         <FormInput
           label="Last Name"
-          {...register("lastName", { required: "กรุณากรอกนามสกุล" })}
+          {...register("lastName", {
+            required: "กรุณากรอกนามสกุล",
+          })}
           error={errors.lastName?.message}
         />
       </div>

@@ -12,7 +12,7 @@ type SidebarProps = {
 
 const MENU = [
   { label: "Patient", href: "/main/Patient", icon: "🧑‍⚕️" },
-  { label: "Staff", href: "/Staff", icon: "👨‍💼" },
+  { label: "Staff", href: "/main/Staff", icon: "👨‍💼" },
 ];
 
 export function Sidebar({
