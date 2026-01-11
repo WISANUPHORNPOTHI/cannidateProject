@@ -46,19 +46,6 @@ export function Navbar({
                     
                 </span>
             </div>
-
-            <div className="flex items-center gap-3">
-                <motion.span
-                    animate={{
-                        opacity: sidebarOpen ? 1 : 0,
-                        x: sidebarOpen ? 0 : -10,
-                    }}
-                    transition={{ duration: 0.2 }}
-                    className="text-sm text-gray-300"
-                >
-                    Hello
-                </motion.span>
-            </div>
         </motion.header>
     );
 }
