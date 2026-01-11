@@ -36,7 +36,7 @@ export default function PatientPage() {
   const isRemoteRef = useRef(false);
 
   const { send, isReady } = useWebSocket(
-    "ws://localhost:3001",
+    process.env.NEXT_PUBLIC_WS_URL!,
     (data) => {
       if (
         data.type === "FORM_STAGE_UPDATE" &&

@@ -1,6 +1,9 @@
+// websocket-server.ts
 import { WebSocketServer } from "ws";
 
-const wss = new WebSocketServer({ port: 3001 });
+const PORT = Number(process.env.PORT) || 3001;
+
+const wss = new WebSocketServer({ port: PORT });
 
 wss.on("connection", (ws, req) => {
   console.log("Client connected from", req.socket.remoteAddress);
@@ -18,4 +21,4 @@ wss.on("connection", (ws, req) => {
   });
 });
 
-console.log("WebSocket running at ws://localhost:3001");
+console.log(`✅ WebSocket running on port ${PORT}`);

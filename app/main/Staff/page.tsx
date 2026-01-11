@@ -39,7 +39,7 @@ export default function page() {
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const { send } = useWebSocket(
-        "ws://localhost:3001",
+        process.env.NEXT_PUBLIC_WS_URL!,
         (data) => {
             if (
                 data.type === "PATIENT_TYPING" &&
