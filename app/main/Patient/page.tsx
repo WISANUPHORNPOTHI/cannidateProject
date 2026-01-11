@@ -37,11 +37,14 @@ export default function PatientPage() {
     },
   });
 
-  const clientIdRef = useRef<string>(
-    typeof crypto !== "undefined" ? crypto.randomUUID() : Math.random().toString()
+  const clientIdRef = useRef(
+    typeof crypto !== "undefined"
+      ? crypto.randomUUID()
+      : Math.random().toString()
   );
 
   const isRemoteUpdateRef = useRef(false);
+  const activeFieldRef = useRef<keyof FormValues | null>(null);
 
   const watchedValues = watch();
 
@@ -60,6 +63,8 @@ export default function PatientPage() {
       isRemoteUpdateRef.current = true;
 
       Object.entries(data.payload ?? {}).forEach(([key, value]) => {
+        if (activeFieldRef.current === key) return;
+
         const currentValue = watch(key as keyof FormValues);
 
         if (currentValue !== value && typeof value === "string") {
@@ -82,11 +87,6 @@ export default function PatientPage() {
     if (!isDirty) return;
     if (isRemoteUpdateRef.current) return;
 
-    const hasAnyValue = Object.values(watchedValues).some(
-      (v) => v !== "" && v !== undefined
-    );
-    if (!hasAnyValue) return;
-
     const t = setTimeout(() => {
       send({
         type: "FORM_STAGE_UPDATE",
@@ -105,6 +105,10 @@ export default function PatientPage() {
 
     return () => clearTimeout(t);
   }, [watchedValues, isReady, isDirty, send]);
+
+  const focus =
+    (field: keyof FormValues) => () => (activeFieldRef.current = field);
+  const blur = () => (activeFieldRef.current = null);
 
   return (
     <form
@@ -126,18 +130,27 @@ export default function PatientPage() {
         <FormInput
           label="First Name"
           {...register("firstName", { required: "กรุณากรอกชื่อ" })}
+          onFocus={focus("firstName")}
+          onBlur={blur}
           error={errors.firstName?.message}
         />
       </div>
 
       <div className="lg:col-span-4">
-        <FormInput label="Middle Name (optional)" {...register("middleName")} />
+        <FormInput
+          label="Middle Name (optional)"
+          {...register("middleName")}
+          onFocus={focus("middleName")}
+          onBlur={blur}
+        />
       </div>
 
       <div className="lg:col-span-4">
         <FormInput
           label="Last Name"
           {...register("lastName", { required: "กรุณากรอกนามสกุล" })}
+          onFocus={focus("lastName")}
+          onBlur={blur}
           error={errors.lastName?.message}
         />
       </div>
@@ -169,15 +182,15 @@ export default function PatientPage() {
           {...register("phone", {
             required: "กรุณากรอกหมายเลขโทรศัพท์",
             pattern: {
-              value: /^[0-9]+$/,
+              value: /^[0-9]*$/,
               message: "กรุณากรอกเฉพาะตัวเลข",
             },
             setValueAs: (v: string) => v.replace(/\D/g, ""),
           })}
+          onFocus={focus("phone")}
+          onBlur={blur}
           error={errors.phone?.message}
         />
-
-
       </div>
 
       <div className="lg:col-span-6">
@@ -191,15 +204,18 @@ export default function PatientPage() {
               message: "รูปแบบ Email ไม่ถูกต้อง",
             },
           })}
+          onFocus={focus("email")}
+          onBlur={blur}
           error={errors.email?.message}
         />
-
       </div>
 
       <div className="lg:col-span-12">
         <FormInput
           label="Address"
           {...register("address", { required: "กรุณากรอกที่อยู่" })}
+          onFocus={focus("address")}
+          onBlur={blur}
           error={errors.address?.message}
         />
       </div>
@@ -210,6 +226,8 @@ export default function PatientPage() {
           {...register("preferredLanguage", {
             required: "กรุณากรอก Preferred Language",
           })}
+          onFocus={focus("preferredLanguage")}
+          onBlur={blur}
           error={errors.preferredLanguage?.message}
         />
       </div>
@@ -218,6 +236,8 @@ export default function PatientPage() {
         <FormInput
           label="Nationality"
           {...register("nationality", { required: "กรุณากรอกสัญชาติ" })}
+          onFocus={focus("nationality")}
+          onBlur={blur}
           error={errors.nationality?.message}
         />
       </div>
@@ -229,18 +249,24 @@ export default function PatientPage() {
           {...register("emergencyContact", {
             required: "กรุณากรอกเบอร์โทรศัพท์ฉุกเฉิน",
             pattern: {
-              value: /^[0-9]+$/,
+              value: /^[0-9]*$/,
               message: "กรุณากรอกเฉพาะตัวเลข",
             },
             setValueAs: (v: string) => v.replace(/\D/g, ""),
           })}
+          onFocus={focus("emergencyContact")}
+          onBlur={blur}
           error={errors.emergencyContact?.message}
         />
-
       </div>
 
       <div className="lg:col-span-4">
-        <FormInput label="Religion (optional)" {...register("religion")} />
+        <FormInput
+          label="Religion (optional)"
+          {...register("religion")}
+          onFocus={focus("religion")}
+          onBlur={blur}
+        />
       </div>
 
       <div className="lg:col-span-12 flex justify-end mt-4">
