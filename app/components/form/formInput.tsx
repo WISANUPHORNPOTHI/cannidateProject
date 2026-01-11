@@ -11,6 +11,7 @@ type FormInputProps = {
 export function FormInput({
   label,
   error,
+  className,
   ...props
 }: FormInputProps) {
   return (
@@ -21,8 +22,31 @@ export function FormInput({
 
       <input
         {...props}
-          aria-invalid={!!error}
-        className={baseInputClass}
+        className={`
+          h-11 rounded-md border px-3 text-sm
+          text-gray-800 bg-white
+
+          transition-all
+          duration-300
+          ease-out
+
+          focus:outline-none
+
+          ${error
+            ? `
+              border-red-400
+              ring-2 ring-red-200
+            `
+            : `
+              border-gray-300
+              focus:border-blue-500
+              focus:ring-2 focus:ring-blue-300
+              focus:-translate-y-[2px]
+              focus:shadow-lg
+            `}
+
+          ${className ?? ""} 
+        `}
       />
 
       {error && (
