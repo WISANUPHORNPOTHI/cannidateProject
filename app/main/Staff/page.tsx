@@ -15,6 +15,7 @@ type FormValues = {
   appointmentDate: string;
   gender: string;
   phone: string;
+  nationalId:string;
   email: string;
   address: string;
   preferredLanguage: string;
@@ -64,7 +65,7 @@ export default function Page() {
         typingTimeoutRef.current = setTimeout(() => {
           setIsTyping(false);
         }, 1000);
-      }
+      } 
 
       if (data?.type === "FIELD_FOCUS") {
         setRemoteFocusedField(data.field);
@@ -153,6 +154,14 @@ export default function Page() {
           label="Last Name"
           {...register("lastName")}
           className={highlight("lastName")}
+        />
+      </div>
+
+      <div className="lg:col-span-4">
+        <FormInput
+          label="national Id"
+          {...register("nationalId")}
+          className={highlight("nationalId")}
         />
       </div>
 

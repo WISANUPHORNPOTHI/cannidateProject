@@ -17,6 +17,7 @@ type FormValues = {
   phone: string;
   email: string;
   dateOfBirth: Date;
+  nationalId:string;
   address: string;
   preferredLanguage: string;
   nationality: string;
@@ -108,7 +109,7 @@ export default function PatientPage() {
 
     const t = setTimeout(() => {
       send({
-        type: "FORM_STAGE_UPDATE",
+        type: " ",
         stage: "PERSONAL_DETAIL",
         source: "PATIENT",
         clientId: clientIdRef.current,
@@ -167,6 +168,16 @@ export default function PatientPage() {
           onFocus={() => focusField("lastName")}
           onBlur={blurField}
           error={errors.lastName?.message}
+        />
+      </div>
+
+      <div className="lg:col-span-4">
+        <FormInput
+          label="national Id"
+          {...register("nationalId", { required: "กรุณากรอกเลขบัตรประชาชน" })}
+          onFocus={() => focusField("nationalId")}
+          onBlur={blurField}
+          error={errors.nationalId?.message}
         />
       </div>
 
